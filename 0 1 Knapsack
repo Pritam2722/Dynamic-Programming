@@ -1,0 +1,72 @@
+//coding ninja link
+//https://www.codingninjas.com/studio/problems/0-1-knapsack_920542?source=youtube&campaign=striver_dp_videos&utm_source=youtube&utm_medium=affiliate&utm_campaign=striver_dp_videos&leftPanelTab=0
+
+#include <bits/stdc++.h> 
+int f(int ind, int w, vector<int> &weight, vector<int> &value, vector<vector<int>> &dp){
+	if(ind==0){
+		if(w>=weight[0]) return value[0];
+		else return 0;
+	}
+
+	if(dp[ind][w]!=-1) return dp[ind][w];
+	int nottake = 0 + f(ind-1, w, weight, value, dp);
+	int take = INT_MIN;
+	if(w>=weight[ind]) take = value[ind] + f(ind-1, w-weight[ind], weight, value, dp);
+
+	return dp[ind][w] = max(take, nottake);
+}
+int knapsack(vector<int> weight, vector<int> value, int n, int maxWeight) 
+{
+	// Memoization
+	vector<vector<int>> dp(n, vector<int>(maxWeight+1, -1));
+	return f(n-1, maxWeight, weight, value, dp);
+	
+	// Tabulation
+	vector<vector<int>> dp(n, vector<int>(maxWeight+1, 0));
+	for(int w=weight[0];w<=maxWeight;w++){
+		dp[0][w]=value[0];
+	}
+	for(int ind=1;ind<n;ind++){
+		for(int w=0;w<=maxWeight;w++){
+			int nottake = 0 + dp[ind-1][w];
+			int take = INT_MIN;
+			if(w>=weight[ind]) take = value[ind] + dp[ind-1][w-weight[ind]];
+
+			dp[ind][w] = max(take, nottake);
+		}
+	}
+	return dp[n-1][maxWeight];
+
+	// Space Optimisation
+	vector<int> prev(maxWeight+1, 0), curr(maxWeight+1, 0);
+	for(int w=weight[0];w<=maxWeight;w++){
+		prev[w]=value[0];
+	}
+	for(int ind=1;ind<n;ind++){
+		for(int w=0;w<=maxWeight;w++){
+			int nottake = 0 + prev[w];
+			int take = INT_MIN;
+			if(w>=weight[ind]) take = value[ind] + prev[w-weight[ind]];
+
+			curr[w] = max(take, nottake);
+		}
+		prev = curr;
+	}
+	return prev[maxWeight];
+
+	// Space Optimisation using 1 row
+	vector<int> prev(maxWeight+1, 0);
+	for(int w=weight[0];w<=maxWeight;w++){
+		prev[w]=value[0];
+	}
+	for(int ind=1;ind<n;ind++){
+		for(int w=maxWeight;w>=0;w--){
+			int nottake = 0 + prev[w];
+			int take = INT_MIN;
+			if(w>=weight[ind]) take = value[ind] + prev[w-weight[ind]];
+
+			prev[w] = max(take, nottake);
+		}
+	}
+	return prev[maxWeight];
+}
