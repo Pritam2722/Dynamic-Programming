@@ -1,0 +1,82 @@
+//leetcode link
+//https://leetcode.com/problems/minimum-cost-for-tickets/description/?envType=study-plan-v2&envId=dynamic-programming
+
+class Solution {
+private:
+    int f(int n, vector<int>& days, vector<int>& costs, int index, vector<int> &dp){
+        if(index>=n) return 0;
+        if(dp[index]!=-1) return dp[index];
+        // 1 day pass
+        int option1 = costs[0] + f(n, days, costs, index+1, dp);
+
+        int i=index;
+        // 7 days pass
+        while(i<n && days[i]<days[index]+7){
+            i++;
+        }
+        int option2 = costs[1] + f(n, days, costs, i, dp);
+
+        i=index;
+        // 30 days pass
+        while(i<n && days[i]<days[index]+30){
+            i++;
+        }
+        int option3 = costs[2] + f(n, days, costs, i, dp);
+
+        return dp[index] = min(option1, min(option2, option3));
+    }
+public:
+    int mincostTickets(vector<int>& days, vector<int>& costs) {
+        int n=days.size();
+        // Memoization
+        vector<int> dp(n+1, -1);
+        return f(n, days, costs, 0, dp);
+
+        // Tabulation
+        vector<int> dp(n+1, INT_MAX);
+        dp[n]=0;
+        for(int index=n-1;index>=0;index--){
+            // 1 day pass
+            int option1 = costs[0] + dp[index+1];
+
+            int i=index;
+            // 7 days pass
+            while(i<n && days[i]<days[index]+7){
+                i++;
+            }
+            int option2 = costs[1] + dp[i];
+
+            i=index;
+            // 30 days pass
+            while(i<n && days[i]<days[index]+30){
+                i++;
+            }
+            int option3 = costs[2] + dp[i];
+
+            dp[index] = min(option1, min(option2, option3));
+        }
+        return dp[0];
+
+        // Space Optimisation
+        queue<pair<int, int>> week;
+        queue<pair<int, int>> month;
+        int ans=0;
+        for(int day:days){
+            // step 1: remove expired days
+            while(!week.empty() && week.front().first + 7 <= day){
+                week.pop();
+            }
+            while(!month.empty() && month.front().first + 30 <= day){
+                month.pop();
+            }
+
+            // step 2: add cost for current day
+            week.push({day, ans+costs[1]});
+            month.push({day, ans+costs[2]});
+
+            // step 3: ans update
+            ans = min(ans+costs[0], min(week.front().second, month.front().second));
+        }
+        return ans;
+    }
+};
